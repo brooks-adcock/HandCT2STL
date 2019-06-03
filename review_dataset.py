@@ -19,8 +19,18 @@ def getNumpyArrayFromDataset(path):
 	# Load spacing values
 	ConstPixelSpacing = reader.GetPixelSpacing()
 
+	threshold = vtk.vtkImageThreshold()
+	threshold.SetInputConnection(reader.GetOutputPort())
+	threshold.ThresholdByLower(400)  # remove all soft tissue
+	threshold.ReplaceInOn()
+	threshold.SetInValue(0)  # set all values below 400 to 0
+	threshold.ReplaceOutOn()
+	threshold.SetOutValue(1)  # set all values above 400 to 1
+	threshold.Update()
+
 	# Get the 'vtkImageData' object from the reader
-	vtk_image_data = reader.GetOutput()
+	vtk_image_data = threshold.GetOutput()
+	#vtk_image_data = reader.GetOutput()
 
 	# Get the 'vtkPointData' object from the 'vtkImageData' object
 	vtk_point_data = vtk_image_data.GetPointData()
