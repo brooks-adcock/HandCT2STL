@@ -34,15 +34,20 @@ def getNumpyArrayFromDataset(path):
 
 	return numpy_array, const_pixel_dims
 
-threshold = 500
+threshold = 400
 
-path = "./Dataset/"
+path = "./VisibleHuman/"
 reader = vtk.vtkDICOMImageReader()
 reader.SetDirectoryName(path)
 reader.Update()
 
+vtk_voi = vtk.vtkExtractVOI()
+vtk_voi.SetInputConnection(reader.GetOutputPort())
+vtk_voi.SetVOI(312, 511, 168, 432, 0, 598)
+vtk_voi.Update()
+
 vtk_threshold = vtk.vtkImageThreshold ()
-vtk_threshold.SetInputConnection(reader.GetOutputPort())
+vtk_threshold.SetInputConnection(vtk_voi.GetOutputPort())
 vtk_threshold.ThresholdByLower(threshold)  # remove all soft tissue
 vtk_threshold.ReplaceInOn()
 vtk_threshold.SetInValue(0)  # set all values below 400 to 0
@@ -52,16 +57,16 @@ vtk_threshold.Update()
 
 dmc = vtk.vtkDiscreteMarchingCubes()
 dmc.SetInputConnection(vtk_threshold.GetOutputPort())
-dmc.GenerateValues(1, 1, 1)
+dmc.GenerateValues(2, 1, 3)
 dmc.Update()
 
-smooth = vtk.vtkSmoothPolyDataFilter()
-smooth.SetInputData(dmc.GetOutput())
-smooth.SetRelaxationFactor(0.001)
-smooth.SetNumberOfIterations(20)
+#smooth = vtk.vtkSmoothPolyDataFilter()
+#smooth.SetInputData(dmc.GetOutput())
+#smooth.SetRelaxationFactor(0.001)
+#smooth.SetNumberOfIterations(1)
 
 # Write the stl file to disk
 stlWriter = vtk.vtkSTLWriter()
 stlWriter.SetFileName("arm.stl")
-stlWriter.SetInputConnection(smooth.GetOutputPort())
+stlWriter.SetInputConnection(dmc.GetOutputPort())
 stlWriter.Write()

@@ -19,9 +19,10 @@ def getNumpyArrayFromDataset(path):
 	# Load spacing values
 	ConstPixelSpacing = reader.GetPixelSpacing()
 
+
 	threshold = vtk.vtkImageThreshold()
 	threshold.SetInputConnection(reader.GetOutputPort())
-	threshold.ThresholdByLower(400)  # remove all soft tissue
+	threshold.ThresholdByLower(500)  # remove all soft tissue
 	threshold.ReplaceInOn()
 	threshold.SetInValue(0)  # set all values below 400 to 0
 	threshold.ReplaceOutOn()
@@ -29,6 +30,7 @@ def getNumpyArrayFromDataset(path):
 	threshold.Update()
 
 	# Get the 'vtkImageData' object from the reader
+	#vtk_image_data = gradient.getOutput()
 	vtk_image_data = threshold.GetOutput()
 	#vtk_image_data = reader.GetOutput()
 
@@ -50,7 +52,7 @@ def getNumpyArrayFromDataset(path):
 	return numpy_array, const_pixel_dims
 
 
-path = "./Dataset/"
+path = "./VisibleHuman/"
 
 numpy_data, const_pixel_dims = getNumpyArrayFromDataset(path)
 
